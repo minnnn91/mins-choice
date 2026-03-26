@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Min's Studio｜選一個自在的人生</title>
+    <meta property="og:title" content="Min's Studio｜選一個自在的人生">
+    <meta property="og:description" content="在科技業行政與斜槓創業之間，努力實驗怎樣的人生最自在。">
+    <meta property="og:image" content="avatar.jpg">
+    <meta property="og:type" content="website">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -137,14 +141,15 @@
         }
 
         .link-item {
-            background: var(--card);
+            background: linear-gradient(135deg, #fff 70%, #fff0f5);
+            border: 2px solid var(--pink);
             padding: 17px 20px;
             border-radius: 14px;
             text-decoration: none;
             color: var(--text);
             font-size: 1.05rem;
             font-weight: 500;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(248,187,208,0.3);
             transition: background 0.25s, transform 0.22s, box-shadow 0.22s;
             display: flex;
             align-items: center;
@@ -154,18 +159,9 @@
         }
 
         .link-item:hover {
-            background: var(--accent);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 18px rgba(93,64,55,0.13);
-        }
-
-        .link-item.highlight {
-            border: 2px solid var(--pink);
-            background: linear-gradient(135deg, #fff 70%, #fff0f5);
-        }
-
-        .link-item.highlight:hover {
             background: linear-gradient(135deg, var(--accent) 60%, #fce4ec);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(248,187,208,0.5);
         }
 
         .emoji { font-size: 1.25rem; flex-shrink: 0; }
