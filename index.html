@@ -15,9 +15,9 @@
             --card: #FFFFFF;
             --text: #5D4037;
             --accent: #E0D7C6;
-            --hover: #D3C9B9;
             --shadow: 0 4px 20px rgba(93, 64, 55, 0.10);
             --pink: #F8BBD0;
+            --pink-deep: #f48fb1;
             --pink-text: #880E4F;
         }
 
@@ -84,9 +84,54 @@
         .profile-name {
             font-size: 1.55rem;
             font-weight: 700;
-            margin: 0 0 10px;
+            margin: 0 0 8px;
             letter-spacing: 0.04em;
         }
+
+        .profile-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 0 8px;
+        }
+
+        .tag-chip {
+            display: inline-block;
+            background: linear-gradient(135deg, #fff 60%, #fff0f5);
+            border: 1.5px solid var(--pink);
+            color: var(--pink-text);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: transform 0.18s, background 0.18s, box-shadow 0.18s;
+            user-select: none;
+        }
+
+        .tag-chip:hover {
+            background: linear-gradient(135deg, var(--pink) 60%, #fce4ec);
+            transform: scale(1.08);
+            box-shadow: 0 3px 10px rgba(248,187,208,0.5);
+        }
+
+        .tag-chip.active {
+            background: var(--pink);
+            box-shadow: 0 2px 8px rgba(248,187,208,0.6);
+        }
+
+        .tag-tooltip {
+            font-size: 0.82rem;
+            color: var(--pink-text);
+            min-height: 1.3rem;
+            margin: 0 0 6px;
+            transition: opacity 0.3s;
+            opacity: 0;
+            font-weight: 500;
+        }
+
+        .tag-tooltip.show { opacity: 1; }
 
         .profile-bio {
             font-size: 0.97rem;
@@ -96,32 +141,60 @@
             opacity: 0.85;
         }
 
-        /* ── 抽籤區 ── */
-        .draw-section {
+        /* ── 能量卡片 ── */
+        .card {
             background: var(--card);
-            padding: 20px 24px;
             border-radius: 18px;
             box-shadow: var(--shadow);
-            margin-bottom: 28px;
+            padding: 20px 22px;
+            margin-bottom: 20px;
             animation: fadeUp 0.7s 0.15s ease both;
         }
 
-        .draw-section p { margin: 0 0 12px; font-size: 0.95rem; }
-
-        #draw-btn {
-            background: var(--pink);
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 700;
             color: var(--pink-text);
+            letter-spacing: 0.06em;
+            margin: 0 0 14px;
+            opacity: 0.8;
+        }
+
+        .energy-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .energy-btn {
             border: none;
-            padding: 10px 24px;
             border-radius: 99px;
-            font-size: 0.98rem;
+            padding: 11px 20px;
+            font-size: 0.95rem;
             font-family: inherit;
             cursor: pointer;
+            font-weight: 500;
             transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: block;
+        }
+
+        .energy-btn.pink {
+            background: var(--pink);
+            color: var(--pink-text);
             box-shadow: 0 2px 8px rgba(248,187,208,0.5);
         }
 
-        #draw-btn:hover { transform: scale(1.06); box-shadow: 0 4px 14px rgba(248,187,208,0.7); }
+        .energy-btn.pink2 {
+            background: var(--pink);
+            color: var(--pink-text);
+            box-shadow: 0 2px 8px rgba(248,187,208,0.5);
+        }
+
+        .energy-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 4px 14px rgba(248,187,208,0.6);
+        }
 
         #result-display {
             margin-top: 14px;
@@ -132,22 +205,44 @@
             transition: opacity 0.45s ease;
         }
 
+        /* ── 分隔標題 ── */
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 24px 0 14px;
+        }
+
+        .section-label::before,
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .section-label span {
+            font-size: 0.8rem;
+            color: #a07060;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+
         /* ── 連結列表 ── */
         .link-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            animation: fadeUp 0.7s 0.25s ease both;
+            gap: 12px;
         }
 
         .link-item {
             background: linear-gradient(135deg, #fff 70%, #fff0f5);
             border: 2px solid var(--pink);
-            padding: 17px 20px;
+            padding: 16px 20px;
             border-radius: 14px;
             text-decoration: none;
             color: var(--text);
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 500;
             box-shadow: 0 2px 10px rgba(248,187,208,0.3);
             transition: background 0.25s, transform 0.22s, box-shadow 0.22s;
@@ -164,13 +259,68 @@
             box-shadow: 0 6px 18px rgba(248,187,208,0.5);
         }
 
-        .emoji { font-size: 1.25rem; flex-shrink: 0; }
+        /* ── 課程特別卡片 ── */
+        .course-card {
+            background: linear-gradient(135deg, #fff8f0 0%, #fff0f5 100%);
+            border: 2px solid var(--pink-deep);
+            border-radius: 18px;
+            padding: 22px;
+            margin-top: 24px;
+            box-shadow: 0 4px 20px rgba(244,143,177,0.2);
+        }
+
+        .course-badge {
+            display: inline-block;
+            background: var(--pink-deep);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            padding: 4px 12px;
+            border-radius: 99px;
+            margin-bottom: 12px;
+        }
+
+        .course-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 6px;
+            color: var(--text);
+        }
+
+        .course-desc {
+            font-size: 0.88rem;
+            opacity: 0.75;
+            margin: 0 0 16px;
+            line-height: 1.6;
+        }
+
+        .course-btn {
+            display: block;
+            background: linear-gradient(135deg, #f48fb1, #f06292);
+            color: #fff;
+            text-decoration: none;
+            padding: 13px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.03em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 3px 12px rgba(244,143,177,0.4);
+        }
+
+        .course-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(244,143,177,0.5);
+        }
+
+        .emoji { font-size: 1.2rem; flex-shrink: 0; }
 
         /* ── 頁尾 ── */
         .footer {
             margin-top: 44px;
             font-size: 0.85rem;
-            opacity: 0.65;
+            opacity: 0.55;
             line-height: 1.8;
         }
     </style>
@@ -186,6 +336,12 @@
                  onerror="this.style.background='#f0e6d6';this.removeAttribute('src')">
         </div>
         <h1 class="profile-name">嗨，我是 Min！🍓</h1>
+        <div class="profile-tags">
+            <span class="tag-chip" data-tip="外向直覺型，充滿熱情與創意！">✨ #ENFP</span>
+            <span class="tag-chip" data-tip="博愛、智慧、完成使命。">🔢 #生命靈數9</span>
+            <span class="tag-chip" data-tip="科技業行政 × 斜槓創業者。">💼 #科技業斜槓</span>
+        </div>
+        <div class="tag-tooltip" id="tag-tooltip"></div>
         <p class="profile-bio">
             在科技業行政與斜槓創業之間，<br>
             努力實驗怎樣的人生最自在。<br>
@@ -193,58 +349,76 @@
         </p>
     </div>
 
-    <!-- 抽籤區 -->
-    <div class="draw-section">
-        <p>✨ 今天的你，需要一點點行動力嗎？</p>
-        <button id="draw-btn">點我抽今日能量金句</button>
+    <!-- 今日能量補給站 -->
+    <div class="card">
+        <div class="card-title">✨ 今日能量補給站</div>
+        <div class="energy-btns">
+            <button class="energy-btn pink" id="draw-btn">🎴 點我抽今日能量金句</button>
+            <a href="https://www.16personalities.com/tw/%E6%80%A7%E6%A0%BC%E6%B8%AC%E8%A9%A6" class="energy-btn pink2" target="_blank" rel="noopener">
+                🔮 測測你的 MBTI ／ 生命靈數
+            </a>
+        </div>
         <div id="result-display"></div>
     </div>
 
-    <!-- 連結列表 -->
+    <!-- 找到我 -->
+    <div class="section-label"><span>找到我</span></div>
     <div class="link-list">
-
         <a href="https://www.instagram.com/min_____91?igsh=cmYybGVnaW4yYmF1&utm_source=qr"
            class="link-item" target="_blank" rel="noopener">
             <span class="emoji">📸</span>
             Instagram｜追蹤 Min 的日常
         </a>
-
         <a href="https://line.me/ti/p/NGO4rNDCkS"
            class="link-item" target="_blank" rel="noopener">
             <span class="emoji">💬</span>
             加 Min 的 LINE｜私訊聊聊
         </a>
-
         <a href="https://line.me/ti/g2/iFxhHFy8ML2Nry4jf-zpBNs6EW5nI3189qGKKQ?utm_source=invitation&utm_medium=link_copy&utm_campaign=default"
            class="link-item" target="_blank" rel="noopener">
             <span class="emoji">🎯</span>
             新竹日常實驗室｜玩樂．成長．交流
         </a>
-
         <a href="https://line.me/ti/g/LFFHnMmn6_"
-           class="link-item highlight" target="_blank" rel="noopener">
+           class="link-item" target="_blank" rel="noopener">
             <span class="emoji">🛍️</span>
             Min 的私藏好物團購（親測才推薦）
         </a>
+    </div>
 
+    <!-- 斜槓攻略 -->
+    <div class="section-label"><span>斜槓攻略</span></div>
+    <div class="link-list">
         <a href="https://www.canva.com/design/DAHEHeKgOuk/wEm-7Qr_L7lH2TtaH2h2Bg/edit?utm_content=DAHEHeKgOuk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton"
            class="link-item" target="_blank" rel="noopener">
             <span class="emoji">🚀</span>
             斜槓創業攻略｜從零開始的第一步
         </a>
-
         <a href="https://www.canva.com/design/DAHENVnYXOU/vQixeSVNeNNjmL6FrB4rZw/edit?utm_content=DAHENVnYXOU&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton"
            class="link-item" target="_blank" rel="noopener">
             <span class="emoji">📱</span>
             自媒體經營攻略｜讓人看見你的故事
         </a>
+    </div>
 
+    <!-- 課程推薦卡片 -->
+    <div class="section-label"><span>推薦好課</span></div>
+    <div class="course-card">
+        <div class="course-badge">🎓 學員親身推薦</div>
+        <div class="course-title">推薦好課｜我親身上過的自媒體課程</div>
+        <div class="course-desc">
+            想經營自媒體卻不知道從哪開始？<br>
+            這堂課讓我從零找到自己的方向 ✨
+        </div>
+        <a href="https://www.surveycake.com/s/AvQwm" class="course-btn" target="_blank" rel="noopener">
+            立即了解課程 →
+        </a>
     </div>
 
     <!-- 頁尾 -->
     <div class="footer">
         「如果生活是一場冒險，我希望我們都能選自己喜歡的劇本。」<br>
-        © Min's Choice
+        © Min's Studio
     </div>
 
 </div>
@@ -256,9 +430,39 @@
         "「自信，是從一次次的小小行動中累積出來的。」💪",
         "「不要害怕選擇，因為每個選擇都是豐富人生的養分。」🎨",
         "「休息也是一種行動，今天就對自己好一點。」🌙",
-        "「烏龍綠半糖少冰，今天的生活也需要這個完美的比例。」🍵"
+        "「烏龍綠半糖少冰，今天的生活也需要這個完美的比例。」🍵",
+        "「你不需要準備好了才開始，開始了才會準備好。」🚀",
+        "「比較是快樂的小偷，今天只跟昨天的自己比。」🌸",
+        "「那些讓你猶豫的事，往往才是最值得去做的事。」✨",
+        "「把能量留給值得的人，把時間留給熱愛的事。」💛",
+        "「人生不是填空題，是申論題，沒有標準答案。」📝",
+        "「勇敢不是不害怕，而是害怕了還是去做。」🦋",
+        "「你的節奏不需要配合任何人，慢慢來比較快。」🐢",
+        "「今天種下的一個小行動，是明天的你會感謝的禮物。」🎁",
+        "「不完美的開始，勝過完美的等待。」⏳",
+        "「你已經比你想像的更厲害了，相信自己一次。」🌟"
     ];
 
+    // 標籤點擊互動
+    const chips = document.querySelectorAll('.tag-chip');
+    const tooltip = document.getElementById('tag-tooltip');
+    let tooltipTimer;
+
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            chips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            tooltip.textContent = chip.dataset.tip;
+            tooltip.classList.add('show');
+            clearTimeout(tooltipTimer);
+            tooltipTimer = setTimeout(() => {
+                tooltip.classList.remove('show');
+                chip.classList.remove('active');
+            }, 2500);
+        });
+    });
+
+    // 抽金句
     const drawBtn = document.getElementById('draw-btn');
     const resultDisplay = document.getElementById('result-display');
 
