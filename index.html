@@ -316,16 +316,56 @@
 
         .emoji { font-size: 1.2rem; flex-shrink: 0; }
 
-        /* ── 頁尾 ── */
-        .footer {
-            margin-top: 44px;
-            font-size: 0.85rem;
-            opacity: 0.55;
-            line-height: 1.8;
+        /* ── 粒子畫布 ── */
+        #particle-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container { position: relative; z-index: 1; }
+
+        /* ── 滑入動畫 ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── 彈跳按鈕 ── */
+        .energy-btn:active,
+        .link-item:active,
+        .course-btn:active,
+        .calc-btn:active {
+            animation: bounce 0.35s ease;
+        }
+
+        @keyframes bounce {
+            0%   { transform: scale(1); }
+            30%  { transform: scale(0.92); }
+            60%  { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        /* 抽金句結果彈出 */
+        @keyframes popIn {
+            0%   { opacity: 0; transform: scale(0.85); }
+            70%  { transform: scale(1.04); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .result-pop {
+            animation: popIn 0.4s ease both;
         }
     </style>
 </head>
 <body>
+<canvas id="particle-canvas"></canvas>
 <div class="container">
 
     <!-- 頭像區 -->
@@ -350,7 +390,7 @@
     </div>
 
     <!-- 今日能量補給站 -->
-    <div class="card">
+    <div class="card reveal">
         <div class="card-title">✨ 今日能量補給站</div>
         <div class="energy-btns">
             <button class="energy-btn pink" id="draw-btn">🎴 點我抽今日能量金句</button>
@@ -365,8 +405,8 @@
     </div>
 
     <!-- 找到我 -->
-    <div class="section-label"><span>找到我</span></div>
-    <div class="link-list">
+    <div class="section-label reveal"><span>找到我</span></div>
+    <div class="link-list reveal">
         <a href="https://www.instagram.com/min_____91?igsh=cmYybGVnaW4yYmF1&utm_source=qr"
            class="link-item" target="_blank" rel="noopener">
             <span class="emoji">📸</span>
@@ -390,8 +430,8 @@
     </div>
 
     <!-- 斜槓攻略 -->
-    <div class="section-label"><span>斜槓攻略</span></div>
-    <div class="link-list">
+    <div class="section-label reveal"><span>斜槓攻略</span></div>
+    <div class="link-list reveal">
         <a href="https://www.canva.com/design/DAHEHeKgOuk/wEm-7Qr_L7lH2TtaH2h2Bg/edit?utm_content=DAHEHeKgOuk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton"
            class="link-item" target="_blank" rel="noopener">
             <span class="emoji">🚀</span>
@@ -405,8 +445,8 @@
     </div>
 
     <!-- 課程推薦卡片 -->
-    <div class="section-label"><span>推薦好課</span></div>
-    <div class="course-card">
+    <div class="section-label reveal"><span>推薦好課</span></div>
+    <div class="course-card reveal">
         <div class="course-badge">🎓 學員親身推薦</div>
         <div class="course-title">推薦好課｜我親身上過的自媒體課程</div>
         <div class="course-desc">
@@ -465,16 +505,78 @@
         });
     });
 
-    // 抽金句
+    // ── 夢幻粒子 ──
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    function createParticle() {
+        return {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height + canvas.height,
+            r: Math.random() * 3 + 1,
+            alpha: Math.random() * 0.5 + 0.15,
+            speed: Math.random() * 0.5 + 0.2,
+            drift: (Math.random() - 0.5) * 0.4,
+            color: ['#F8BBD0','#f48fb1','#E0D7C6','#ffe0ec'][Math.floor(Math.random()*4)]
+        };
+    }
+
+    for (let i = 0; i < 55; i++) {
+        const p = createParticle();
+        p.y = Math.random() * canvas.height;
+        particles.push(p);
+    }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.alpha;
+            ctx.fill();
+            p.y  -= p.speed;
+            p.x  += p.drift;
+            if (p.y < -10) particles[i] = createParticle();
+        });
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // ── 滑入動畫 ──
+    const revealEls = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 80);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => observer.observe(el));
+
+    // ── 抽金句彈出效果 ──
     const drawBtn = document.getElementById('draw-btn');
     const resultDisplay = document.getElementById('result-display');
 
     drawBtn.addEventListener('click', () => {
         const idx = Math.floor(Math.random() * quotes.length);
         resultDisplay.style.opacity = 0;
+        resultDisplay.classList.remove('result-pop');
         setTimeout(() => {
             resultDisplay.textContent = quotes[idx];
             resultDisplay.style.opacity = 1;
+            void resultDisplay.offsetWidth;
+            resultDisplay.classList.add('result-pop');
         }, 150);
     });
 </script>

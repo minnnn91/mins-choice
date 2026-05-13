@@ -225,6 +225,43 @@
             opacity: 0.85;
         }
 
+        /* ── 粒子畫布 ── */
+        #particle-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container { position: relative; z-index: 1; }
+
+        /* ── 滑入 ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.55s ease, transform 0.55s ease;
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ── 彈跳 ── */
+        .calc-btn:active {
+            animation: bounce 0.35s ease;
+        }
+        @keyframes bounce {
+            0%   { transform: scale(1); }
+            30%  { transform: scale(0.92); }
+            60%  { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        /* 結果彈出 */
+        @keyframes popIn {
+            0%   { opacity: 0; transform: scale(0.88); }
+            70%  { transform: scale(1.03); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .pop-in { animation: popIn 0.45s ease both; }
+
         .footer {
             text-align: center;
             margin-top: 40px;
@@ -235,6 +272,7 @@
     </style>
 </head>
 <body>
+<canvas id="particle-canvas"></canvas>
 <div class="container">
 
     <div class="page-header">
@@ -243,7 +281,7 @@
         <p class="page-subtitle">輸入你的生日，算出屬於你的數字密碼<br>看看宇宙給你安排了什麼能量 ✨</p>
     </div>
 
-    <div class="calc-card">
+    <div class="calc-card reveal">
         <div class="calc-label">📅 輸入你的西元生日</div>
         <div class="date-inputs">
             <input type="number" id="input-year" placeholder="西元年（例如 1991）" min="1900" max="2099">
@@ -279,7 +317,50 @@
 
 </div>
 <script>
-    const data = {
+    // ── 夢幻粒子 ──
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    function createParticle() {
+        return {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height + canvas.height,
+            r: Math.random() * 3 + 1,
+            alpha: Math.random() * 0.5 + 0.15,
+            speed: Math.random() * 0.5 + 0.2,
+            drift: (Math.random() - 0.5) * 0.4,
+            color: ['#F8BBD0','#f48fb1','#E0D7C6','#ffe0ec'][Math.floor(Math.random()*4)]
+        };
+    }
+    for (let i = 0; i < 55; i++) { const p = createParticle(); p.y = Math.random() * canvas.height; particles.push(p); }
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.color; ctx.globalAlpha = p.alpha; ctx.fill();
+            p.y -= p.speed; p.x += p.drift;
+            if (p.y < -10) particles[i] = createParticle();
+        });
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // ── 滑入動畫 ──
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 80);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── 計算 ──
         1: {
             name: "1 號人｜開創者",
             keyword: "獨立 · 領袖 · 創造",
@@ -385,6 +466,9 @@
 
         const section = document.getElementById('result-section');
         section.style.display = 'block';
+        section.classList.remove('pop-in');
+        void section.offsetWidth;
+        section.classList.add('pop-in');
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
