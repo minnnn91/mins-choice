@@ -33,16 +33,51 @@
             padding: 40px 20px 60px;
         }
 
+        #particle-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .container {
             width: 100%;
             max-width: 460px;
             animation: fadeUp 0.7s ease both;
+            position: relative;
+            z-index: 1;
         }
 
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
+
+        /* 滑入動畫 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.55s ease, transform 0.55s ease;
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* 彈跳 */
+        .calc-btn:active { animation: bounce 0.35s ease; }
+        @keyframes bounce {
+            0%   { transform: scale(1); }
+            30%  { transform: scale(0.92); }
+            60%  { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        /* 結果彈出 */
+        @keyframes popIn {
+            0%   { opacity: 0; transform: scale(0.88); }
+            70%  { transform: scale(1.03); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .pop-in { animation: popIn 0.45s ease both; }
 
         .page-header {
             text-align: center;
@@ -142,10 +177,8 @@
             box-shadow: 0 4px 16px rgba(248,187,208,0.7);
         }
 
-        /* 結果區 */
         #result-section {
             display: none;
-            animation: fadeUp 0.5s ease both;
         }
 
         .result-card {
@@ -157,7 +190,6 @@
             box-shadow: 0 4px 20px rgba(244,143,177,0.15);
         }
 
-        /* 大數字 */
         .result-number {
             font-size: 5rem;
             font-weight: 700;
@@ -166,7 +198,6 @@
             margin-bottom: 10px;
         }
 
-        /* 名稱一行：9號人｜博愛者 */
         .result-name {
             font-size: 1.15rem;
             font-weight: 700;
@@ -193,7 +224,6 @@
             margin-bottom: 20px;
         }
 
-        /* 超能力 & 挑戰面 */
         .trait-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -225,43 +255,6 @@
             opacity: 0.85;
         }
 
-        /* ── 粒子畫布 ── */
-        #particle-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .container { position: relative; z-index: 1; }
-
-        /* ── 滑入 ── */
-        .reveal {
-            opacity: 0;
-            transform: translateY(28px);
-            transition: opacity 0.55s ease, transform 0.55s ease;
-        }
-        .reveal.visible { opacity: 1; transform: translateY(0); }
-
-        /* ── 彈跳 ── */
-        .calc-btn:active {
-            animation: bounce 0.35s ease;
-        }
-        @keyframes bounce {
-            0%   { transform: scale(1); }
-            30%  { transform: scale(0.92); }
-            60%  { transform: scale(1.06); }
-            100% { transform: scale(1); }
-        }
-
-        /* 結果彈出 */
-        @keyframes popIn {
-            0%   { opacity: 0; transform: scale(0.88); }
-            70%  { transform: scale(1.03); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        .pop-in { animation: popIn 0.45s ease both; }
-
         .footer {
             text-align: center;
             margin-top: 40px;
@@ -284,19 +277,19 @@
     <div class="calc-card reveal">
         <div class="calc-label">📅 輸入你的西元生日</div>
         <div class="date-inputs">
-            <input type="number" id="input-year" placeholder="西元年（例如 1991）" min="1900" max="2099">
-            <input type="number" id="input-month" placeholder="月份（1 - 12）" min="1" max="12">
-            <input type="number" id="input-day" placeholder="日期（1 - 31）" min="1" max="31">
+            <input type="number" id="input-year"  placeholder="西元年（例如 1991）" min="1900" max="2099">
+            <input type="number" id="input-month" placeholder="月份（1 - 12）"      min="1"    max="12">
+            <input type="number" id="input-day"   placeholder="日期（1 - 31）"      min="1"    max="31">
         </div>
-        <button class="calc-btn" onclick="calculate()">✨ 計算我的生命靈數</button>
+        <button class="calc-btn" id="calc-btn">✨ 計算我的生命靈數</button>
     </div>
 
     <div id="result-section">
         <div class="result-card">
-            <div class="result-number" id="result-num"></div>
-            <div class="result-name" id="result-name"></div>
+            <div class="result-number"  id="result-num"></div>
+            <div class="result-name"    id="result-name"></div>
             <div class="result-keyword" id="result-keyword"></div>
-            <div class="result-desc" id="result-desc"></div>
+            <div class="result-desc"    id="result-desc"></div>
             <div class="trait-row">
                 <div class="trait-box">
                     <div class="trait-title light">🌟 超能力</div>
@@ -317,164 +310,171 @@
 
 </div>
 <script>
-    // ── 夢幻粒子 ──
-    const canvas = document.getElementById('particle-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    function createParticle() {
-        return {
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height + canvas.height,
-            r: Math.random() * 3 + 1,
-            alpha: Math.random() * 0.5 + 0.15,
-            speed: Math.random() * 0.5 + 0.2,
-            drift: (Math.random() - 0.5) * 0.4,
-            color: ['#F8BBD0','#f48fb1','#E0D7C6','#ffe0ec'][Math.floor(Math.random()*4)]
-        };
-    }
-    for (let i = 0; i < 55; i++) { const p = createParticle(); p.y = Math.random() * canvas.height; particles.push(p); }
-    function animateParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach((p, i) => {
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = p.color; ctx.globalAlpha = p.alpha; ctx.fill();
-            p.y -= p.speed; p.x += p.drift;
-            if (p.y < -10) particles[i] = createParticle();
-        });
-        ctx.globalAlpha = 1;
-        requestAnimationFrame(animateParticles);
-    }
-    animateParticles();
+// ── 夢幻粒子 ──
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
 
-    // ── 滑入動畫 ──
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, i) => {
-            if (entry.isIntersecting) {
-                setTimeout(() => entry.target.classList.add('visible'), i * 80);
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.12 });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+function resizeCanvas() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-    // ── 計算 ──
-        1: {
-            name: "1 號人｜開創者",
-            keyword: "獨立 · 領袖 · 創造",
-            desc: "你是天生的領袖，充滿自信與強大的行動力，喜歡走出自己的路，不喜歡被束縛。\n點子源源不絕，只要你決定做一件事，通常都能做成。\n身邊的人常常被你的衝勁感染，不知不覺就跟著你走了。",
-            light: ["超會自己做決定", "行動超快不拖拉", "有獨特想法別人想不到", "天生就有領袖氣場"],
-            dark: ["有時太堅持己見", "不太容易妥協", "容易忽略別人感受"]
-        },
-        2: {
-            name: "2 號人｜協調者",
-            keyword: "敏感 · 直覺 · 合作",
-            desc: "你的直覺超準，常常一眼就能看穿別人的狀態，是朋友圈裡最懂得傾聽的那個人。\n你重視關係中的和諧，不喜歡衝突，總是默默地在背後維繫著大家的情感。\n細膩的心思讓你特別有溫度。",
-            light: ["超會察言觀色", "朋友有事第一個發現", "記得每個人的小細節", "讓人覺得被理解"],
-            dark: ["容易想太多", "有時無法果斷決定", "太在意別人怎麼看你"]
-        },
-        3: {
-            name: "3 號人｜表達者",
-            keyword: "創意 · 樂觀 · 社交",
-            desc: "你天生就有表達的才華，說話有趣、充滿創意，走進任何場合都能讓氣氛活起來。\n樂觀的能量是你最大的武器，即使遇到困難也能很快振作。\n你的存在本身就是一種療癒。",
-            light: ["說話超有梗讓人想聽", "天生樂觀很能帶動氣氛", "創意無限腦袋轉不停", "交朋友完全不費力"],
-            dark: ["容易三分鐘熱度", "情緒起伏比較大", "有時說太多忘了聽"]
-        },
-        4: {
-            name: "4 號人｜建設者",
-            keyword: "踏實 · 穩定 · 責任",
-            desc: "你是那種說到做到、值得信賴的人。\n做事有條理、不急不躁，喜歡把每一步都踩穩了再往前走。\n朋友遇到問題第一個想到你，因為你總是能給出最務實、最可行的建議。",
-            light: ["說到做到超可靠", "做事超有條理不會亂", "耐心超好不容易放棄", "是朋友眼中的定心丸"],
-            dark: ["太謹慎有時會錯失機會", "難以接受突然的改變", "容易鑽牛角尖"]
-        },
-        5: {
-            name: "5 號人｜自由者",
-            keyword: "自由 · 冒險 · 變化",
-            desc: "你天生就需要自由，討厭被框架限制，對任何新奇的事物都充滿好奇。\n適應力超強，換個環境對你來說不是挑戰，而是新的冒險。\n你的生命就是一場精彩的探索旅程。",
-            light: ["換環境超快適應", "好奇心讓你什麼都懂一點", "活力滿滿帶動周圍的人", "勇於嘗試別人不敢做的事"],
-            dark: ["容易坐不住想換口味", "計畫趕不上變化", "有時缺乏長遠方向"]
-        },
-        6: {
-            name: "6 號人｜照顧者",
-            keyword: "慈愛 · 家庭 · 奉獻",
-            desc: "你天生就有一種讓人安心的氣質，走到哪裡都像個小太陽，溫暖身邊的每一個人。\n你重視家人和朋友，願意為他們付出很多，是大家心中最有安全感的存在。",
-            light: ["讓人莫名覺得安心", "超懂得照顧別人感受", "對家人朋友非常付出", "有責任心做事不推諉"],
-            dark: ["容易忘了照顧自己", "付出太多容易疲憊", "有時太理想化人際關係"]
-        },
-        7: {
-            name: "7 號人｜思考者",
-            keyword: "智慧 · 內省 · 直覺",
-            desc: "你是個深度思考者，喜歡把事情想透徹再行動。\n直覺非常準，常常第一感就是對的。\n你不需要太多人，但需要有深度的連結。\n獨處對你來說不是孤獨，而是充電。",
-            light: ["直覺超準很少看走眼", "思考深度別人跟不上", "獨立自主不需要人哄", "分析問題一針見血"],
-            dark: ["想太多反而行動慢", "有時顯得疏離難親近", "不擅長閒聊表面的話"]
-        },
-        8: {
-            name: "8 號人｜掌權者",
-            keyword: "成就 · 財富 · 執行力",
-            desc: "你有強大的執行力和商業頭腦，設定目標之後就會全力衝刺，不達目的不罷休。\n天生對金錢和資源有敏銳的判斷力，知道怎麼讓事情有效率地運作。\n你就是那種說要成功就會成功的人。",
-            light: ["執行力超強說做就做", "對數字和資源超敏感", "目標明確不容易動搖", "天生有管理領導的氣場"],
-            dark: ["有時太強勢讓人有壓力", "容易忽略過程只看結果", "工作和生活容易失衡"]
-        },
-        9: {
-            name: "9 號人｜博愛者",
-            keyword: "博愛 · 智慧 · 使命感",
-            desc: "你有強烈的使命感，心裡裝著的不只是自己，還有身邊的人、甚至整個世界。\n你多才多藝，對很多事都有興趣，更重要的是你願意把自己的能量分享給需要的人。\n很多人被你身上那股想讓世界更好的力量深深吸引。",
-            light: ["胸懷大志不只想著自己", "多才多藝什麼都能聊", "樂於分享不會藏私", "讓人覺得被愛和被接納"],
-            dark: ["容易對人期望太高", "有時想太遠忽略眼前", "情緒容易隨環境起伏"]
-        }
+function createParticle() {
+    return {
+        x:     Math.random() * canvas.width,
+        y:     canvas.height + Math.random() * 20,
+        r:     Math.random() * 3 + 1,
+        alpha: Math.random() * 0.5 + 0.15,
+        speed: Math.random() * 0.5 + 0.2,
+        drift: (Math.random() - 0.5) * 0.4,
+        color: ['#F8BBD0','#f48fb1','#E0D7C6','#ffe0ec'][Math.floor(Math.random() * 4)]
     };
+}
 
-    function calculate() {
-        const year  = document.getElementById('input-year').value;
-        const month = document.getElementById('input-month').value;
-        const day   = document.getElementById('input-day').value;
+for (let i = 0; i < 55; i++) {
+    const p = createParticle();
+    p.y = Math.random() * canvas.height;
+    particles.push(p);
+}
 
-        if (!year || !month || !day) {
-            alert('請完整填入年、月、日喔！');
-            return;
+function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p, i) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle  = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.fill();
+        p.y -= p.speed;
+        p.x += p.drift;
+        if (p.y < -10) particles[i] = createParticle();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ── 滑入動畫 ──
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+            setTimeout(() => entry.target.classList.add('visible'), i * 80);
+            observer.unobserve(entry.target);
         }
+    });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        const fullDate = `${year}${String(month).padStart(2,'0')}${String(day).padStart(2,'0')}`;
-        let sum = 0;
-        for (let ch of fullDate) sum += parseInt(ch);
-        while (sum >= 10) {
-            let s = 0;
-            for (let ch of String(sum)) s += parseInt(ch);
-            sum = s;
-        }
+// ── 靈數資料 ──
+const numerologyData = {
+    1: {
+        name: "1 號人｜開創者",
+        keyword: "獨立 · 領袖 · 創造",
+        desc: "你是天生的領袖，充滿自信與強大的行動力，喜歡走出自己的路，不喜歡被束縛。\n點子源源不絕，只要你決定做一件事，通常都能做成。\n身邊的人常常被你的衝勁感染，不知不覺就跟著你走了。",
+        light: ["超會自己做決定", "行動超快不拖拉", "有獨特想法別人想不到", "天生就有領袖氣場"],
+        dark:  ["有時太堅持己見", "不太容易妥協", "容易忽略別人感受"]
+    },
+    2: {
+        name: "2 號人｜協調者",
+        keyword: "敏感 · 直覺 · 合作",
+        desc: "你的直覺超準，常常一眼就能看穿別人的狀態，是朋友圈裡最懂得傾聽的那個人。\n你重視關係中的和諧，不喜歡衝突，總是默默地在背後維繫著大家的情感。\n細膩的心思讓你特別有溫度。",
+        light: ["超會察言觀色", "朋友有事第一個發現", "記得每個人的小細節", "讓人覺得被理解"],
+        dark:  ["容易想太多", "有時無法果斷決定", "太在意別人怎麼看你"]
+    },
+    3: {
+        name: "3 號人｜表達者",
+        keyword: "創意 · 樂觀 · 社交",
+        desc: "你天生就有表達的才華，說話有趣、充滿創意，走進任何場合都能讓氣氛活起來。\n樂觀的能量是你最大的武器，即使遇到困難也能很快振作。\n你的存在本身就是一種療癒。",
+        light: ["說話超有梗讓人想聽", "天生樂觀很能帶動氣氛", "創意無限腦袋轉不停", "交朋友完全不費力"],
+        dark:  ["容易三分鐘熱度", "情緒起伏比較大", "有時說太多忘了聽"]
+    },
+    4: {
+        name: "4 號人｜建設者",
+        keyword: "踏實 · 穩定 · 責任",
+        desc: "你是那種說到做到、值得信賴的人。\n做事有條理、不急不躁，喜歡把每一步都踩穩了再往前走。\n朋友遇到問題第一個想到你，因為你總是能給出最務實、最可行的建議。",
+        light: ["說到做到超可靠", "做事超有條理不會亂", "耐心超好不容易放棄", "是朋友眼中的定心丸"],
+        dark:  ["太謹慎有時會錯失機會", "難以接受突然的改變", "容易鑽牛角尖"]
+    },
+    5: {
+        name: "5 號人｜自由者",
+        keyword: "自由 · 冒險 · 變化",
+        desc: "你天生就需要自由，討厭被框架限制，對任何新奇的事物都充滿好奇。\n適應力超強，換個環境對你來說不是挑戰，而是新的冒險。\n你的生命就是一場精彩的探索旅程。",
+        light: ["換環境超快適應", "好奇心讓你什麼都懂一點", "活力滿滿帶動周圍的人", "勇於嘗試別人不敢做的事"],
+        dark:  ["容易坐不住想換口味", "計畫趕不上變化", "有時缺乏長遠方向"]
+    },
+    6: {
+        name: "6 號人｜照顧者",
+        keyword: "慈愛 · 家庭 · 奉獻",
+        desc: "你天生就有一種讓人安心的氣質，走到哪裡都像個小太陽，溫暖身邊的每一個人。\n你重視家人和朋友，願意為他們付出很多，是大家心中最有安全感的存在。",
+        light: ["讓人莫名覺得安心", "超懂得照顧別人感受", "對家人朋友非常付出", "有責任心做事不推諉"],
+        dark:  ["容易忘了照顧自己", "付出太多容易疲憊", "有時太理想化人際關係"]
+    },
+    7: {
+        name: "7 號人｜思考者",
+        keyword: "智慧 · 內省 · 直覺",
+        desc: "你是個深度思考者，喜歡把事情想透徹再行動。\n直覺非常準，常常第一感就是對的。\n你不需要太多人，但需要有深度的連結。\n獨處對你來說不是孤獨，而是充電。",
+        light: ["直覺超準很少看走眼", "思考深度別人跟不上", "獨立自主不需要人哄", "分析問題一針見血"],
+        dark:  ["想太多反而行動慢", "有時顯得疏離難親近", "不擅長閒聊表面的話"]
+    },
+    8: {
+        name: "8 號人｜掌權者",
+        keyword: "成就 · 財富 · 執行力",
+        desc: "你有強大的執行力和商業頭腦，設定目標之後就會全力衝刺，不達目的不罷休。\n天生對金錢和資源有敏銳的判斷力，知道怎麼讓事情有效率地運作。\n你就是那種說要成功就會成功的人。",
+        light: ["執行力超強說做就做", "對數字和資源超敏感", "目標明確不容易動搖", "天生有管理領導的氣場"],
+        dark:  ["有時太強勢讓人有壓力", "容易忽略過程只看結果", "工作和生活容易失衡"]
+    },
+    9: {
+        name: "9 號人｜博愛者",
+        keyword: "博愛 · 智慧 · 使命感",
+        desc: "你有強烈的使命感，心裡裝著的不只是自己，還有身邊的人、甚至整個世界。\n你多才多藝，對很多事都有興趣，更重要的是你願意把自己的能量分享給需要的人。\n很多人被你身上那股想讓世界更好的力量深深吸引。",
+        light: ["胸懷大志不只想著自己", "多才多藝什麼都能聊", "樂於分享不會藏私", "讓人覺得被愛和被接納"],
+        dark:  ["容易對人期望太高", "有時想太遠忽略眼前", "情緒容易隨環境起伏"]
+    }
+};
 
-        const d = data[sum];
-        if (!d) return;
+// ── 計算 ──
+function calculate() {
+    const year  = document.getElementById('input-year').value;
+    const month = document.getElementById('input-month').value;
+    const day   = document.getElementById('input-day').value;
 
-        document.getElementById('result-num').textContent     = sum;
-        document.getElementById('result-name').textContent    = d.name;
-        document.getElementById('result-keyword').textContent = d.keyword;
-
-        // 描述：\n 換行
-        document.getElementById('result-desc').innerHTML =
-            d.desc.split('\n').join('<br>');
-
-        // 超能力：每項一行
-        document.getElementById('result-light').innerHTML =
-            d.light.map(t => `• ${t}`).join('<br>');
-
-        // 挑戰面：每項一行
-        document.getElementById('result-dark').innerHTML =
-            d.dark.map(t => `• ${t}`).join('<br>');
-
-        const section = document.getElementById('result-section');
-        section.style.display = 'block';
-        section.classList.remove('pop-in');
-        void section.offsetWidth;
-        section.classList.add('pop-in');
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!year || !month || !day) {
+        alert('請完整填入年、月、日喔！');
+        return;
     }
 
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Enter') calculate();
-    });
+    const fullDate = `${year}${String(month).padStart(2,'0')}${String(day).padStart(2,'0')}`;
+    let sum = 0;
+    for (let ch of fullDate) sum += parseInt(ch);
+    while (sum >= 10) {
+        let s = 0;
+        for (let ch of String(sum)) s += parseInt(ch);
+        sum = s;
+    }
+
+    const d = numerologyData[sum];
+    if (!d) return;
+
+    document.getElementById('result-num').textContent     = sum;
+    document.getElementById('result-name').textContent    = d.name;
+    document.getElementById('result-keyword').textContent = d.keyword;
+    document.getElementById('result-desc').innerHTML      = d.desc.split('\n').join('<br>');
+    document.getElementById('result-light').innerHTML     = d.light.map(t => `• ${t}`).join('<br>');
+    document.getElementById('result-dark').innerHTML      = d.dark.map(t => `• ${t}`).join('<br>');
+
+    const section = document.getElementById('result-section');
+    section.style.display = 'block';
+    section.classList.remove('pop-in');
+    void section.offsetWidth;
+    section.classList.add('pop-in');
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('calc-btn').addEventListener('click', calculate);
+document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
 </script>
 </body>
 </html>
